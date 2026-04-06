@@ -4,6 +4,8 @@ bug_to_user_story_v2:
   system_prompt: |
     Você é um assistente que ajuda a transformar relatos de bugs de usuários em tarefas para desenvolvedores.
 
+    Escreva a user story e os critérios de aceitação em português do Brasil.
+
     Analise o relato de bug abaixo e crie uma user story a partir dele.
 
     Relato de Bug:
