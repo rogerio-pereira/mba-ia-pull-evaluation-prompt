@@ -273,42 +273,101 @@ python src/evaluate.py
 
 ---
 
+## Técnicas Aplicadas (Fase 2)
+
+O prompt otimizado está em `prompts/bug_to_user_story_v2.yml`. As técnicas declaradas em `techniques_applied` e como foram aplicadas na prática:
+
+| Técnica | Por que usar | Aplicação neste projeto |
+| -------- | ------------- | ------------------------ |
+| **Role prompting** | Ancorar tom, vocabulário de backlog e foco em valor de negócio | Persona fixa: Product Owner sênior; linguagem em PT-BR, tom positivo, sem culpar usuários. |
+| **Chain of Thought (CoT)** | Bugs exigem extração de fatos, contraste esperado/atual e escolha de molde antes de escrever | Bloco “Raciocínio interno” com passos numerados (extração, checklist de cobertura/recall, contraste, precisão, concisão); instrução explícita de **não** copiar esse raciocínio na resposta final. |
+| **Skeleton of Thought** | User stories e BDD precisam de estrutura previsível para time de desenvolvimento e para avaliação automática | Definição rígida de moldes **SIMPLES**, **MÉDIO** e **COMPLEXO** (incluindo cabeçalhos `===` no complexo), ordem de seções, título exato `Critérios de Aceitação:` e sequência Dado / Quando / Então / E. |
+| **Few-shot Learning** | Reduz ambiguidade de formato e densidade dos critérios | Exemplos sintéticos de SIMPLES (botão Salvar, validação de e-mail) e MÉDIO (POST com 500 / log), com trechos de saída no padrão esperado. |
+
+Regras adicionais no v2: orientações por tipo de bug (cross-browser, webhook de pagamento, painel vs lista, IDOR, pipeline com desconto, performance em listas Android, relatórios lentos), regra de ouro para dimensionar o molde corretamente, e placeholders (`[a preencher]`, `[gateway a identificar]`) para evitar invenção de fatos.
+
+---
+
+## Resultados Finais
+
+**Avaliação automática:** o script `src/evaluate.py` agrega cinco escores derivados de métricas com LLM-as-judge em `src/metrics.py`: Helpfulness, Correctness, F1-Score, Clarity e Precision. A média aritmética desses cinco precisa ser **≥ 0,9** para o status “APROVADO” no CLI.
+
+Nas últimas execuções locais com **OpenAI** (`gpt-4o-mini` para respostas e `gpt-4o` para julgar), a média geral ficou em torno de **0,74–0,80**, abaixo da meta de **0,9**. A variância costuma aparecer no equilíbrio entre **recall** (cobrir fatos alinhados ao gabarito) e **precision** (evitar seções extras ou detalhes não sustentados pelo relato).
+
+**Créditos OpenAI:** a iteração até estabilizar ≥ 0,9 foi interrompida por limite de crédito na API.
+
+**Tabela comparativa (visão qualitativa)**
+
+| Aspecto | `bug_to_user_story_v1` | `bug_to_user_story_v2` |
+| -------- | ------------------------ | ------------------------ |
+| Estrutura | Prompt enxuto, poucas regras por tipo de bug | Moldes S/M/C, BDD explícito, regras por domínio |
+| Exemplos | Few-shot limitado | Few-shot + CoT + skeleton no YAML |
+| Edge cases | Tratamento genérico | Placeholders, paridade entre ambientes, webhook, IDOR/admin, etc. |
+| Métricas | Baseline mais baixa (esperado) | Melhora parcial; meta 0,9 não atingida nas últimas medições |
+
+**Links e capturas (substituir no fork público):**
+
+- Projeto LangSmith: `https://smith.langchain.com/projects/[SEU_LANGCHAIN_PROJECT]`
+- Prompt no Hub: `https://smith.langchain.com/prompts/[SEU_USERNAME]/bug_to_user_story_v2` (use o mesmo usuário de `USERNAME_LANGSMITH_HUB` no `.env`)
+- Screenshots: opcionalmente em `docs/evidencias/` quando houver novas execuções
+
+---
+
+## Como Executar
+
+### Pré-requisitos
+
+- Python **3.9+**
+- Conta [LangSmith](https://smith.langchain.com/) com API key
+- Chave de pelo menos um provedor de LLM:
+  - **OpenAI:** `OPENAI_API_KEY`; modelos sugeridos `gpt-4o-mini` (respostas) e `gpt-4o` (avaliação)
+  - **Google Gemini** (alternativa): `GOOGLE_API_KEY`; ajuste `LLM_PROVIDER`, `LLM_MODEL` e `EVAL_MODEL` no `.env` conforme `.env.example`
+
+### Configuração
+
+1. `cp .env.example .env`
+2. Preencha `LANGSMITH_API_KEY`, `LANGSMITH_PROJECT` (ou variável equivalente usada pelo projeto), `USERNAME_LANGSMITH_HUB`, e chaves do provedor
+3. Ambiente virtual e dependências:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Fluxo por fase
+
+| Fase | Comando | Observação |
+| ----- | -------- | ----------- |
+| Pull do prompt inicial | `python src/pull_prompts.py` | Saída em `prompts/raw_prompts.yml` (conforme script) |
+| Otimizar | Editar `prompts/bug_to_user_story_v2.yml` | System + user prompt, `techniques_applied`, tags |
+| Publicar no Hub | `python src/push_prompts.py` | `{USERNAME_LANGSMITH_HUB}/bug_to_user_story_v2` |
+| Avaliar | `python src/evaluate.py` | Dataset `"{LANGCHAIN_PROJECT}-eval"` a partir de `datasets/bug_to_user_story.jsonl`; avalia os **10 primeiros** exemplos listados no LangSmith |
+| Testes do YAML | `pytest tests/test_prompts.py` | Quando os testes estiverem implementados |
+
+Sem crédito OpenAI, use **Gemini** no `.env` ou aguarde nova cota/chave antes de rodar `evaluate.py` (custo proporcional a geração + julgamentos por exemplo).
+
+---
+
+## Evidências no LangSmith
+
+**Sobre screenshots:** como não consegui concluir o desafio até o critério de aprovação (média ≥ 0,9) e por limite de crédito na API, **não incluí capturas de tela** do LangSmith neste repositório. Espero que a avaliação **não seja apenas binária** (certo/errado) e que os professores consigam enxergar o **esforço e o processo** documentado aqui — prompt v2, iterações, README e código — mesmo sem o resultado numérico esperado.
+
+O que o projeto ainda permite verificar no LangSmith, para quem tiver acesso à mesma conta ou links públicos:
+
+1. **Dataset:** o arquivo `datasets/bug_to_user_story.jsonl` tem **15** exemplos; o script cria ou reutiliza o dataset nomeado `"{LANGCHAIN_PROJECT}-eval"`. Alguns checklists do enunciado citam “≥ 20 exemplos”; o dataset deste boilerplate permanece com **15** linhas.
+2. **Prompt v2:** após `python src/push_prompts.py`, o histórico do repositório público `bug_to_user_story_v2` aparece no Hub.
+3. **Tracing:** em `evaluate.py`, cada exemplo gera chamadas ao modelo principal e ao juiz em `metrics.py`; filtre pelo projeto em `LANGCHAIN_PROJECT` para inspecionar entradas e saídas.
+4. **Comparativo v1 vs v2:** possível se avaliar o prompt inicial (`leonanluppi/bug_to_user_story_v1` ou equivalente) e o seu `{usuário}/bug_to_user_story_v2` no mesmo projeto.
+
+**Links (substituir pelos seus, se publicar):** projeto `https://smith.langchain.com/projects/[SEU_PROJETO]`, prompt `https://smith.langchain.com/prompts/[SEU_USUARIO]/bug_to_user_story_v2`.
+
+---
+
 ## Entregável
 
-1. **Repositório público no GitHub** (fork do repositório base) contendo:
-
-   - Todo o código-fonte implementado
-   - Arquivo `prompts/bug_to_user_story_v2.yml` 100% preenchido e funcional
-   - Arquivo `README.md` atualizado com:
-
-2. **README.md deve conter:**
-
-   A) **Seção "Técnicas Aplicadas (Fase 2)"**:
-
-   - Quais técnicas avançadas você escolheu para refatorar os prompts
-   - Justificativa de por que escolheu cada técnica
-   - Exemplos práticos de como aplicou cada técnica
-
-   B) **Seção "Resultados Finais"**:
-
-   - Link público do seu dashboard do LangSmith mostrando as avaliações
-   - Screenshots das avaliações com as notas mínimas de 0.9 atingidas
-   - Tabela comparativa: prompts ruins (v1) vs prompts otimizados (v2)
-
-   C) **Seção "Como Executar"**:
-
-   - Instruções claras e detalhadas de como executar o projeto
-   - Pré-requisitos e dependências
-   - Comandos para cada fase do projeto
-
-3. **Evidências no LangSmith**:
-   - Link público (ou screenshots) do dashboard do LangSmith
-   - Devem estar visíveis:
-
-     - Dataset de avaliação com ≥ 20 exemplos
-     - Execuções dos prompts v1 (ruins) com notas baixas
-     - Execuções dos prompts v2 (otimizados) com notas ≥ 0.9
-     - Tracing detalhado de pelo menos 3 exemplos
+1. **Repositório público no GitHub** com código, `prompts/bug_to_user_story_v2.yml` funcional e este `README.md` contendo as seções **Técnicas Aplicadas (Fase 2)**, **Resultados Finais**, **Como Executar** e **Evidências no LangSmith**.
+2. Evidências visuais (screenshots do LangSmith com métricas ≥ 0,9, etc.) **não foram anexadas** pelo motivo descrito na seção **Evidências no LangSmith** acima.
 
 ---
 
