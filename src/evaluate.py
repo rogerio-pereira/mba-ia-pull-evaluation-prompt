@@ -290,6 +290,15 @@ def main():
     if not check_env_vars(required_vars):
         return 1
 
+    hub_username = (os.getenv("USERNAME_LANGSMITH_HUB") or "").strip().strip("/")
+    if not hub_username:
+        print(
+            "❌ USERNAME_LANGSMITH_HUB não está definido no .env.\n"
+            "Ele é obrigatório para puxar prompts no formato usuario/bug_to_user_story_v2.\n"
+            "Veja docs/02-username-langsmith-hub.md"
+        )
+        return 1
+
     client = Client()
     project_name = os.getenv("LANGCHAIN_PROJECT", "prompt-optimization-challenge-resolved")
 
@@ -310,9 +319,12 @@ def main():
     print("Certifique-se de ter feito push dos prompts antes de avaliar:")
     print("  python src/push_prompts.py\n")
 
+    # Hub sempre usa owner/repo; sem o owner a API retorna 404 (ex.: .../commits/-/bug_to_user_story_v2/latest)
+    default_hub_prompt = f"{hub_username}/bug_to_user_story_v2"
     prompts_to_evaluate = [
-        "bug_to_user_story_v2",
+        os.getenv("EVAL_PROMPT_HUB_ID", default_hub_prompt),
     ]
+    print(f"Prompt no hub: {prompts_to_evaluate[0]}\n")
 
     all_passed = True
     evaluated_count = 0
