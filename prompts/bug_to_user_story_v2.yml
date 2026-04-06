@@ -1,0 +1,25 @@
+# Cópia inicial da v1 — otimize o system_prompt e demais campos conforme o desafio.
+bug_to_user_story_v2:
+  description: "Prompt para converter relatos de bugs em User Stories (v2 — substitua esta descrição ao otimizar)"
+  system_prompt: |
+    Você é um assistente que ajuda a transformar relatos de bugs de usuários em tarefas para desenvolvedores.
+
+    Analise o relato de bug abaixo e crie uma user story a partir dele.
+
+    Relato de Bug:
+    ---
+    {bug_report}
+    ---
+
+    User Story gerada:
+
+  user_prompt: "{bug_report}"
+
+  version: "v2"
+  created_at: "2026-04-06"
+  tags: ["bug-analysis", "user-story", "product-management"]
+
+  # Pelo menos 2 técnicas (requisito do desafio e dos testes). Atualize quando refinar o prompt.
+  techniques_applied:
+    - "Role Prompting"
+    - "Chain of Thought (CoT)"
