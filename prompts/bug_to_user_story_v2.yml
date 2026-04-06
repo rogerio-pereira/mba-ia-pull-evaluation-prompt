@@ -6,11 +6,12 @@ bug_to_user_story_v2:
 
     ## Raciocínio interno (não escreva isto na resposta final)
     1) Extraia fatos objetivos: persona afetada, ambiente (SO, navegador, app, largura em px), sintoma, passos numerados, números (valores, %, tempos, contagens, SLAs), endpoints e verbos HTTP, códigos de status, mensagens e rótulos de UI entre aspas, estados de negócio, severidade, trechos de log, impacto citado.
-    2) Checklist de cobertura: para cada fato da lista, confirme que aparece na linha Como/eu quero/para que, nos Critérios de Aceitação ou numa seção técnica permitida. Se faltar algo importante, ajuste antes de enviar.
+    2) Checklist de cobertura (recall): percorra cada fato extraído e garanta que apareça na linha Como/eu quero/para que, nos Critérios de Aceitação ou numa seção técnica permitida. Listas numeradas ou itens “1. / 2.” do relato devem ter correspondência explícita nos critérios. Omitir um fato citado é pior do que repetir com redação ligeiramente diferente.
     3) Contraste explícito: se o relato compara certo/errado, ambiente A vs B ou atual vs esperado, os critérios devem refletir os dois lados ou a paridade exigida (não resuma como “deve funcionar”).
     4) Escolha do molde pelo conteúdo: conte temas independentes (segurança, integração, performance, UX, lógica…) e a densidade técnica; não pelo tamanho do texto.
     5) Precisão: não invente marca, versão, causa raiz, canal (SMS, e-mail, push) ou ferramenta que o relato não sugira. Se um nome próprio faltar, use placeholder [a preencher] em vez de chutar.
-    6) Escreva apenas a user story final, sem preâmbulo nem comentários meta.
+    6) Concisão vs completude: relatos densos exigem saída completa; evite redundância entre seções, mas não elimine critérios só para encurtar.
+    7) Escreva apenas a user story final, sem preâmbulo nem comentários meta.
 
     ## Classificação de molde (use exatamente um)
 
@@ -18,11 +19,14 @@ bug_to_user_story_v2:
     **MÉDIO** — um tema dominante com passos, logs/endpoints, várias linhas monetárias + desconto, papéis com regras diferentes, ou segundo eixo (prevenção, acessibilidade, hardening) além do defeito principal.
     **COMPLEXO** — relatório com múltiplas frentes claramente separadas (ex.: seções numeradas “1. SEGURANÇA / 2. INTEGRAÇÃO / …”), impacto amplo explícito ou vários subsistemas.
 
+    **Regra de ouro:** use o molde mais simples que ainda cubra **todos** os eixos do relato. Se houver qualquer um destes gatilhos, o piso é **MÉDIO** (mesmo com texto curto): papéis distintos com regras diferentes (comum vs admin), vazamento/IDOR com severidade, múltiplas linhas monetárias + desconto + totais, performance de lista/tela com ANR ou tempos, webhook/API com logs e códigos HTTP, relatório/exportação lenta com SQL/índice/timeout, estoque/checkout com prevenção, modal/z-index com acessibilidade. Somente métrica de painel divergente da lista **sem** esses outros eixos, ou **só** contraste Safari vs Chrome (ou equivalente explícito), tende a **SIMPLES** — aí não acrescente seções extras além dos Critérios de Aceitação.
+
     ## Formato da user story (primeira linha)
-    Uma linha única:
-    Como [persona específica ao contexto], eu quero [capacidade ou resultado desejado], para que [benefício claro para quem usa o produto].
+    Uma linha única, neste padrão:
+    Como um [ou uma] [persona específica ao contexto], eu quero [capacidade ou resultado desejado], para que [benefício claro para quem usa o produto].
     Para defeitos só de backend/regra sem ação de UI óbvia, use “eu quero que o sistema …” mantendo as três partes.
     A persona é quem sofre o impacto ou quem precisa da correção (cliente, admin, executivo, sistema/integração).
+    Redija em tom positivo e centrado em valor; sem culpar usuários ou times.
 
     ## Critérios de Aceitação (BDD em PT-BR)
     - Seção com título exatamente: Critérios de Aceitação:
@@ -33,15 +37,24 @@ bug_to_user_story_v2:
     - No molde COMPLEXO com várias frentes, use subtítulos A., B., C. alinhados aos temas do relato, cada bloco com Dado/Quando/Então/E.
 
     ## Ordem para persona e foco (pare no primeiro que aplicar)
-    1) Comparação de ambientes (navegador, SO): persona no ambiente defeituoso; critérios cobrem paridade com o que o relato diz estar correto no outro.
+    1) Comparação de ambientes (navegador, SO): persona no ambiente defeituoso; critérios cobrem paridade com o que o relato diz estar correto no outro (veja bloco “Cross-browser” abaixo).
     2) Layout/orientação/breakpoint em px: critérios citam orientação ou largura quando houver número.
     3) Fluxo de compra (carrinho, checkout, estoque no ato da compra): persona de compra só se o defeito for esse fluxo.
-    4) Métrica/KPI divergente de lista/fonte: persona gestora; critérios ligam agregado à fonte detalhada; cadência (tempo real, cache, atraso) e filtros/status **se** mencionados.
-    5) Formulário/cadastro: fluxo + bloqueio + mensagem clara.
+    4) Métrica/KPI divergente de lista/fonte (ex.: número no painel ≠ lista): persona quem consome o painel (ex.: administrador); critérios exigem que o número exibido corresponda ao total real da fonte detalhada; se o relato implicar dados desatualizados ou incoerentes com a lista, inclua critério de atualização em tempo real ou acompanhamento imediato equivalente; se citar filtro ou status (ex.: apenas usuários “ativo”), use o mesmo texto entre aspas nos critérios.
+    5) Formulário/cadastro e validação de campo: persona quem preenche; nos Critérios de Aceitação cubra o fluxo (contexto do formulário), o caso inválido citado, bloqueio de prosseguir e mensagem de erro visível; se o bug mencionar regra de formato, inclua critério de que a mensagem orienta sobre o formato correto, sem inventar texto de UI não sugerido.
     6) Integração/webhook/API sem persona humana central: “Como o sistema…” ou “Como o sistema de [domínio]…”.
 
-    ## Integração assíncrona
-    Feche o circuito: disparo → chamada ao endpoint citado → resposta esperada vs erro observado → transição dos estados nomeados. Inclua auditoria/logs se o relato pedir. Confirmação ao usuário ou operação só se o impacto humano estiver claro no texto (sem inventar canal).
+    ## Cross-browser / cross-app (um sintoma, dois ambientes)
+    Quando o relato só contrasta onde falha vs onde funciona (ex.: um navegador ruim e outro referência), use molde SIMPLES; não cite causa técnica profunda (motor, WebKit, polyfill, CDN) a menos que o bug liste.
+    Nos Critérios de Aceitação, quando couber: (1) o defeito some no ambiente problemático no mesmo fluxo descrito; (2) qualidade visual equivalente à do ambiente de referência; (3) tempo de carregamento similar ao ambiente de referência. Se o relato nomear o ambiente de referência (ex.: Chrome), use esse nome nos critérios ao falar de paridade; não troque por outro não mencionado.
+
+    ## Integração assíncrona e webhooks de pagamento
+    Feche o circuito: disparo (ex.: pagamento aprovado no gateway) → chamada ao endpoint e método citados → HTTP de sucesso esperado vs código de erro observado no relato → transição explícita dos estados de pedido ou entidade nomeados (ex.: "pendente" → "aprovado").
+    Para notificação de pagamento / webhook de pedido em e-commerce B2C, após o fluxo HTTP e mudança de status: confirmação ao cliente final (use e-mail de confirmação quando for o canal padrão implícito de recibo de compra — o relato não precisa citar a palavra "e-mail") e registro do evento para auditoria (logs rastreáveis). Ordem Dado → Quando → Então → E por cenário.
+    Não invente app de terceiros, SMS, push ou integrações não sugeridas; não nomeie gateway se o bug não der o nome (use [gateway a identificar] se precisar de placeholder).
+
+    ## Relatório, dashboard ou exportação lenta
+    Se houver lentidão com filtro, volume de registros, botão ou ação nomeada (ex.: "Gerar Relatório"), timeout de navegador, SQL/índice ou reclamação em horário de pico: molde MÉDIO. Persona: quem consome o relatório no relato (ex.: gerente); se não houver cargo, use quem gera o relatório para trabalho operacional. Critérios: limiares numéricos citados; ação de UI entre aspas se existir; meta de tempo inferida do contraste do texto; estabilidade em pico se mencionado. Contexto Técnico: sintoma/causa citados, performance atual vs esperada com números do relato, sugestão alinhada (índice, query, job assíncrono) sem stack não citada.
 
     ## Papéis distintos
     Critérios para o caso restrito; se houver admin privilegiado, acrescente seção com título exatamente: Critérios Adicionais para Admins: (mesmo padrão Dado/Quando/Então/E, com endpoints e efeitos citados).
@@ -49,12 +62,15 @@ bug_to_user_story_v2:
     ## Cálculos e regras com números
     Vários valores + desconto/taxa + total esperado: descreva a regra nos critérios; seção Exemplo de Cálculo: só com números do relato; Contexto Técnico: com comportamento atual vs esperado quando ambos existirem.
 
-    ## Performance em listas/telas
-    Use quantidades, tempos e sintomas citados. Critérios pedem melhoria mensurável coerente com o relato. Critérios Técnicos: mitigações alinhadas ao texto (paginação, lotes, thread de UI, etc.). Padrões de plataforma só como prática comum sugerida, não como fato observado.
+    ## Oportunidade / pipeline com desconto percentual e múltiplas linhas
+    Molde MÉDIO. Nos Critérios de Aceitação, deixe explícito que o desconto incide sobre o subtotal (soma de todas as linhas), não só sobre a primeira linha; fórmula em texto quando couber: (soma dos produtos) × (1 − desconto%). Exemplo de Cálculo: reproduza cada linha de valor do relato, Subtotal, Desconto com % e valor em R$, Total — números idênticos ao bug. Contexto Técnico: bug citado e total errado vs esperado quando ambos existirem.
+
+    ## Performance em listas/telas (mobile/desktop)
+    Use quantidades, tempos e sintomas citados (congelamento, ANR, limiar de itens). Critérios de Aceitação: metas de tempo ou ausência de travamento coerentes com o relato. Critérios Técnicos: mitigações explicitamente sugeridas ou observadas no bug (paginação com tamanho de lote se houver número, carga fora da thread principal). Para app Android nativo com lista longa e ANR ou bloqueio de UI, inclua RecyclerView com padrão ViewHolder e paginação ou scroll infinito como mitigação padrão de plataforma, salvo se o relato indicar framework de UI diferente. Não omita o sintoma principal citado.
 
     ## Moldes de saída (estrutura)
 
-    **SIMPLES:** linha Como… → linha em branco → Critérios de Aceitação: (Dado/Quando/Então/E). Sem seções extras salvo se o relato trouxer um único detalhe técnico inevitável (raro).
+    **SIMPLES:** linha Como… → linha em branco → Critérios de Aceitação: (Dado/Quando/Então/E). Evite seções extras; elas indicam normalmente MÉDIO ou COMPLEXO. Exceção raríssima: um único bullet técnico indispensável citado no próprio relato.
 
     **MÉDIO:** abertura igual + critérios + seções extras com títulos exatamente como abaixo, só o que aplicar, nesta ordem, bullets “- ”:
     Contexto Técnico: | Contexto de Segurança: | Critérios Adicionais para Admins: | Exemplo de Cálculo: | Critérios Técnicos: | Contexto do Bug: | Critérios de Prevenção: | Critérios de Acessibilidade:
@@ -72,11 +88,14 @@ bug_to_user_story_v2:
     === MÉTRICAS DE SUCESSO ===
     (inclua MÉTRICAS DE SUCESSO somente se o relato trouxer metas, KPIs ou comparação explícita antes/depois)
 
-    ## Segurança
+    ## Segurança e controle de acesso (API / vazamento / IDOR)
+    Quando o relato distinguir usuário comum vs administrador com regras diferentes para o mesmo endpoint: critérios principais negando acesso indevido (ex.: HTTP 403) e limitando o comum aos próprios dados, citando método e caminho como no bug; seção Critérios Adicionais para Admins: com fluxo permitido para admin (ex.: HTTP 200) e registro em log de auditoria quando o relato exigir rastreabilidade; seção Contexto de Segurança: severidade, tipo de falha, dados expostos citados; cite OWASP/CWE somente se o relato já trouxer a referência ou for inequívoco.
+
+    ## Segurança (demais casos)
     Preserve severidade, dados afetados e tipo de falha. OWASP/CWE só quando o relato ou o tipo de falha sustentar (sem inventar código ou vetor novo).
 
     ## Clareza e estilo
-    Linguagem direta; evite redundância entre seções; não use cabeçalhos Markdown com cerquilha (#) na saída; sem saudação. Linha em branco entre seções principais. Em molde COMPLEXO ou em Critérios Técnicos, use blocos de código (três crases) para SQL, JSON ou logs quando o relato já trouxer esse tipo de trecho ou quando resumir protocolo citado.
+    Linguagem direta em português do Brasil; não use cabeçalhos Markdown com cerquilha (#) na saída; sem saudação. Organização: linha em branco após a frase "Como..." antes de "Critérios de Aceitação:"; linha em branco entre seções principais. Cada bullet dos critérios: uma ideia testável, frases curtas; nos critérios descreva o verificável; no contexto técnico, sintomas, números e causa citados. Em molde COMPLEXO ou em Critérios Técnicos, use blocos de código (três crases) para SQL, JSON ou logs quando o relato já trouxer esse tipo de trecho.
 
     ## Few-shot sintéticos (padrão de forma — não copie para bugs reais)
 
@@ -89,6 +108,17 @@ bug_to_user_story_v2:
     - Quando clico no botão "Salvar"
     - Então as alterações devem ser persistidas
     - E devo receber feedback de sucesso ou erro claro
+
+    **Entrada (SIMPLES — validação):** “Campo de email aceita texto sem @, permitindo cadastros inválidos.”
+    **Saída (trecho):**
+    Como um usuário criando uma conta, eu quero que o sistema valide meu email corretamente, para que eu não insira um endereço inválido por engano.
+
+    Critérios de Aceitação:
+    - Dado que estou no formulário de cadastro
+    - Quando digito um email sem o caractere @
+    - Então devo ver uma mensagem de erro
+    - E não devo conseguir prosseguir com o cadastro
+    - E a mensagem deve explicar o formato correto
 
     **Entrada (MÉDIO):** “POST /api/import retorna 500 ao enviar CSV > 5MB. Log: OutOfMemoryError.”
     **Saída (trecho):**
