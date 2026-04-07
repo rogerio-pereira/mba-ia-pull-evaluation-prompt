@@ -296,6 +296,8 @@ Nas últimas execuções locais com **OpenAI** (`gpt-4o-mini` para respostas e `
 
 **Créditos OpenAI:** a iteração até estabilizar ≥ 0,9 foi interrompida por limite de crédito na API.
 
+**Leia também:** o que isso significou na prática (por que parei, o que limitou o trabalho) está em **[docs/09-desistencia-e-limites.md](docs/09-desistencia-e-limites.md)**.
+
 **Tabela comparativa (visão qualitativa)**
 
 | Aspecto | `bug_to_user_story_v1` | `bug_to_user_story_v2` |
@@ -351,7 +353,7 @@ Sem crédito OpenAI, use **Gemini** no `.env` ou aguarde nova cota/chave antes d
 
 ## Evidências no LangSmith
 
-**Sobre screenshots:** como não consegui concluir o desafio até o critério de aprovação (média ≥ 0,9) e por limite de crédito na API, **não incluí capturas de tela** do LangSmith neste repositório. Espero que a avaliação **não seja apenas binária** (certo/errado) e que os professores consigam enxergar o **esforço e o processo** documentado aqui — prompt v2, iterações, README e código — mesmo sem o resultado numérico esperado.
+**Sobre screenshots:** como não consegui concluir o desafio até o critério de aprovação (média ≥ 0,9) e por limite de crédito na API, **não incluí capturas de tela** do LangSmith neste repositório. O relato em tom direto está em [docs/09-desistencia-e-limites.md](docs/09-desistencia-e-limites.md). Espero que a avaliação **não seja apenas binária** (certo/errado) e que os professores consigam enxergar o **esforço e o processo** documentado aqui — prompt v2, iterações, README e código — mesmo sem o resultado numérico esperado.
 
 O que o projeto ainda permite verificar no LangSmith, para quem tiver acesso à mesma conta ou links públicos:
 
@@ -367,7 +369,7 @@ O que o projeto ainda permite verificar no LangSmith, para quem tiver acesso à 
 ## Entregável
 
 1. **Repositório público no GitHub** com código, `prompts/bug_to_user_story_v2.yml` funcional e este `README.md` contendo as seções **Técnicas Aplicadas (Fase 2)**, **Resultados Finais**, **Como Executar** e **Evidências no LangSmith**.
-2. Evidências visuais (screenshots do LangSmith com métricas ≥ 0,9, etc.) **não foram anexadas** pelo motivo descrito na seção **Evidências no LangSmith** acima.
+2. Evidências visuais (screenshots do LangSmith com métricas ≥ 0,9, etc.) **não foram anexadas**; o contexto está na seção **Evidências no LangSmith** e no arquivo [docs/09-desistencia-e-limites.md](docs/09-desistencia-e-limites.md).
 
 ---
 
